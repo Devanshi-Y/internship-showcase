@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Listening to the Chip: DRDO SAG Internship</title>
+<meta name="description" content="Presentation site for a DRDO SAG summer internship: AES-128 from scratch in C and Correlation Power Analysis on real power traces.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230a0f1c'/><path d='M2 18l4-1 3 6 4-15 4 21 4-12 3 4 6-3' fill='none' stroke='%23ffb454' stroke-width='2.2' stroke-linejoin='round'/></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brand">Listening to the <b>Chip</b></div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-view="home">Overview</button>
+    <button class="tab" role="tab" data-view="journey">Journey</button>
+    <button class="tab" role="tab" data-view="classes">Classes</button>
+    <button class="tab" role="tab" data-view="lab">Code Lab</button>
+    <button class="tab" role="tab" data-view="cpa">CPA Live</button>
+    <button class="tab" role="tab" data-view="results">Results</button>
+    <button class="tab" role="tab" data-view="report">Report</button>
+    <button class="tab" role="tab" data-view="qa">Viva Q&amp;A</button>
+  </nav>
+  <button class="icon-btn" id="presentBtn" title="Presentation mode (P)">Present</button>
+  <button class="icon-btn" id="themeBtn" title="Light / dark (T)" aria-label="Toggle theme">Theme</button>
+</div></header>
+
+<main>
+<!-- ============ OVERVIEW ============ -->
+<section class="view" id="v-home">
+  <div class="hero">
+    <canvas id="heroCanvas" aria-hidden="true"></canvas>
+    <div class="hero-in">
+      <div class="eyebrow">DRDO · Scientific Analysis Group · Summer Internship 2026</div>
+      <h1>AES is unbroken on paper.<br><em>Its power trace talks.</em></h1>
+      <p class="lead">Two months, one question: can a mathematically secure cipher be broken by measuring the chip that runs it? I built AES-128 from scratch in C, then recovered its full 128-bit key from real power traces using Correlation Power Analysis.</p>
+      <div class="meta">
+        <span class="pill">Devanshi Yadav · B.Tech CSE · IGDTUW</span>
+        <span class="pill">Guide: Sh. Ajit Jaiswal, Scientist 'E'</span>
+        <span class="pill">June–July 2026</span>
+      </div>
+      <p style="margin-top:1.2rem"><button class="btn" data-go="journey">Start the story →</button> <button class="btn ghost" data-go="cpa">Jump to the live attack</button></p>
+    </div>
+  </div>
+
+  <div class="grid g4" style="margin-top:1rem">
+    <div class="card stat"><b>16 / 16</b><span>key bytes recovered from real traces</span></div>
+    <div class="card stat"><b>0.87</b><span>Pearson correlation at the leak, Byte 0 (sample 1317)</span></div>
+    <div class="card stat"><b>10,000</b><span>power traces × 5,000 samples each</span></div>
+    <div class="card stat"><b>11</b><span>C and Python programs, every output reproducible here</span></div>
+  </div>
+
+  <div class="sechead" style="margin-top:2rem"><div class="eyebrow">The storyline</div><h2>Theory → Build → Attack → Optimise</h2></div>
+  <div class="grid g4">
+    <div class="card"><h3>1 · Understand</h3><p>Stallings Ch. 1–6, classical ciphers, GF(2⁸), the side-channel pipeline.</p><button class="btn ghost" data-go="classes">Classes</button></div>
+    <div class="card"><h3>2 · Build</h3><p>AES-128 in C, one transformation at a time, each checked against NIST FIPS-197.</p><button class="btn ghost" data-go="lab">Code Lab</button></div>
+    <div class="card"><h3>3 · Attack</h3><p>CPA on a ChipWhisperer dataset: find the leak, rank 256 guesses, rebuild the key.</p><button class="btn ghost" data-go="cpa">CPA Live</button></div>
+    <div class="card"><h3>4 · Optimise</h3><p>Parallel CPA across cores, S-box versus AddRoundKey, a negative timing result.</p><button class="btn ghost" data-go="results">Results</button></div>
+  </div>
+</section>
+
+<!-- ============ JOURNEY ============ -->
+<section class="view" id="v-journey">
+  <div class="sechead"><div class="eyebrow">What happened, in order</div><h2>The internship journey</h2><p class="lead">Each step links to the code or result it produced.</p></div>
+  <div class="tl" id="timeline"></div>
+</section>
+
+<!-- ============ CLASSES ============ -->
+<section class="view" id="v-classes">
+  <div class="sechead"><div class="eyebrow">Taught by the guide</div><h2>What the sessions covered</h2></div>
+  <div class="seg" id="sessSeg" role="group" aria-label="Session">
+    <button data-s="0" aria-pressed="true">Session 1 · The pipeline</button>
+    <button data-s="1" aria-pressed="false">Session 2 · CPA</button>
+    <button data-s="2" aria-pressed="false">Session 3 · Parallel &amp; leakage point</button>
+  </div>
+  <div class="grid g2">
+    <div class="card" id="sessCard"></div>
+    <div class="grid" style="align-content:start">
+      <div class="card">
+        <h3>Try it: Hamming weight</h3>
+        <p style="color:var(--mute);margin:.3rem 0">Click bits. Power is modelled as proportional to the number of 1s.</p>
+        <div class="hw-row" id="hwBits"></div>
+        <div>Byte = <b class="mono" id="hwHex">0x00</b> · decimal <b class="mono" id="hwDec">0</b> · <b>HW = <span id="hwVal" class="mono" style="color:var(--acc)">0</span></b></div>
+        <div class="bar" style="margin-top:.6rem;height:12px"><i id="hwBar"></i></div>
+        <p style="color:var(--mute);font-size:.85rem">From class: 0x05 → HW 2, 0x0A → HW 2 (same power), 0xBA → HW 5.</p>
+      </div>
+      <div class="card">
+        <h3>Pearson correlation (from class)</h3>
+        <div class="formula">ρ = Σ(xᵢ − x̄)(yᵢ − ȳ) / ( σₓ · σᵧ )</div>
+        <p style="color:var(--mute);font-size:.88rem">x = measured power at one sample point (one value per trace), y = predicted Hamming weight of S-box(plaintext ⊕ key guess). Done for 256 guesses × 5,000 sample points: the <span class="mono">covariance_LT</span> matrix.</p>
+      </div>
+      <div class="card">
+        <h3>Why the S-box?</h3>
+        <table class="t"><tr><th>Operation</th><th>Nature</th><th>As a target</th></tr>
+        <tr><td>AddRoundKey</td><td>Linear (XOR)</td><td>Leaks, but ghost peaks blur the key</td></tr>
+        <tr><td>ShiftRows</td><td>Byte movement</td><td>Little computation, hard to exploit</td></tr>
+        <tr><td>MixColumns</td><td>Linear in GF(2⁸)</td><td>Needs several key bytes at once</td></tr>
+        <tr><td><b>SubBytes (S-box)</b></td><td>Non-linear</td><td><b>Isolates one key hypothesis, fewest traces</b></td></tr></table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CODE LAB ============ -->
+<section class="view" id="v-lab">
+  <div class="sechead"><div class="eyebrow">Switch between code and what it printed</div><h2>Code Lab</h2>
+  <p class="lead">Source files are the real ones; outputs were captured by compiling and running them. Press <b>Run</b> to replay the terminal.</p></div>
+  <div class="lab">
+    <aside class="card files" id="fileList" aria-label="Programs"></aside>
+    <div id="labMain"></div>
+  </div>
+</section>
+
+<!-- ============ CPA LIVE ============ -->
+<section class="view" id="v-cpa">
+  <div class="sechead"><div class="eyebrow">The attack, step by step</div><h2>CPA Live</h2></div>
+
+  <div class="card">
+    <div class="labhead"><h3>A · Real hardware replay <span class="pill">recorded run, ChipWhisperer dataset</span></h3>
+      <div class="toolbar"><button class="btn" id="repRun">▶ Run CPA on aes_dataset.h5</button><button class="btn ghost" id="repReset">Reset</button></div></div>
+    <p class="lead" style="margin-top:0">10,000 real traces × 5,000 samples. For each key byte: 256 guesses × 5,000 time points. These are the values my run produced (N = 300 traces per byte).</p>
+    <div class="grid g2" style="align-items:start">
+      <div>
+        <div id="repRows"></div>
+        <div class="keyline" id="repKey" style="margin-top:.8rem">&nbsp;</div>
+        <div id="repVerdict" class="mono" style="color:var(--mute);font-size:.85rem"></div>
+      </div>
+      <div>
+        <div class="imgtabs" id="repTabs"></div>
+        <img class="fit" id="repImg" alt="Real CPA plot for Byte 0">
+        <p id="repCap" style="color:var(--mute);font-size:.85rem;margin:.4rem 0 0"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <div class="labhead"><h3>B · Interactive CPA lab <span class="pill">synthetic traces, computed live in your browser</span></h3>
+      <div class="toolbar"><button class="btn" id="cpaRun">Run attack</button><button class="btn ghost" id="cpaSweep">Rank vs. number of traces</button></div></div>
+    <p class="lead" style="margin-top:0">The simulated device leaks the Hamming weight of <span class="mono">pt ⊕ key</span> at sample 30 and of <span class="mono">S-box(pt ⊕ key)</span> at sample 60, plus Gaussian noise. Change the settings and watch the correct guess stand out, or fail to.</p>
+    <div class="ctrl">
+      <div><label>Secret key byte (0–255)</label><input type="number" id="cKey" min="0" max="255" value="43" style="width:100%"></div>
+      <div><label>Traces N: <output id="oN">200</output></label><input type="range" id="cN" min="10" max="1500" step="10" value="200"></div>
+      <div><label>Noise σ: <output id="oS">2.0</output></label><input type="range" id="cS" min="0.5" max="8" step="0.5" value="2"></div>
+      <div><label>Attacker's leakage model</label><select id="cM" style="width:100%"><option value="sbox">S-box output (non-linear)</option><option value="ark">pt ⊕ k (linear, AddRoundKey)</option></select></div>
+    </div>
+    <div class="kpis" id="cKpis"></div>
+    <div class="grid g2">
+      <div><div class="eyebrow">Peak correlation for each of the 256 key guesses</div><canvas class="plot" id="cvBars"></canvas></div>
+      <div><div class="eyebrow">Correlation over time: correct guess vs. the other 255</div><canvas class="plot" id="cvTime"></canvas></div>
+    </div>
+    <div style="margin-top:1rem"><div class="eyebrow">Rank of the correct key as traces increase (1 = recovered)</div><canvas class="plot" id="cvSweep" style="height:220px"></canvas>
+    <p id="sweepNote" style="color:var(--mute);font-size:.85rem;margin:.3rem 0 0"></p></div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="view" id="v-results">
+  <div class="sechead"><div class="eyebrow">Evidence</div><h2>Results</h2><p class="lead">Click any figure to enlarge.</p></div>
+  <div class="gal" id="gallery"></div>
+
+  <div class="grid g2" style="margin-top:1rem;align-items:start">
+    <div class="card"><h3>All 16 key bytes (real traces, N = 300)</h3>
+      <table class="t" id="keyTable"></table>
+      <p id="keyFull" class="keyline" style="font-size:.95rem;margin-top:.7rem"></p></div>
+    <div class="grid" style="align-content:start">
+      <div class="card"><h3>S-box vs. AddRoundKey model (Byte 0)</h3>
+        <table class="t"><tr><th>N</th><th>S-box rank</th><th>S-box |ρ|</th><th>ARK rank</th><th>ARK |ρ|</th></tr>
+          <tr><td>20</td><td>2</td><td class="num">0.8450</td><td>3</td><td class="num">0.9400</td></tr>
+          <tr><td>40</td><td>1</td><td class="num">0.8703</td><td>2</td><td class="num">0.9478</td></tr>
+          <tr><td>100</td><td>1</td><td class="num">0.8617</td><td>3</td><td class="num">0.9149</td></tr>
+          <tr><td>200</td><td>1</td><td class="num">0.8531</td><td>2</td><td class="num">0.9254</td></tr>
+          <tr><td>250</td><td>1</td><td class="num">0.8573</td><td>1</td><td class="num">0.9260</td></tr>
+          <tr><td>300</td><td>1</td><td class="num">0.8702</td><td>2</td><td class="num">0.9225</td></tr></table>
+        <p style="color:var(--mute);font-size:.86rem">The linear model has the higher raw correlation but an unstable rank; the S-box model holds rank 1 from N = 40. A strong peak is not the same as a reliable one.</p></div>
+      <div class="card"><h3>Parallel CPA</h3>
+        <table class="t"><tr><th>Run</th><th>Workers</th><th>Serial</th><th>Parallel</th><th>Speed-up</th></tr>
+          <tr><td>First run</td><td>6</td><td class="num">13.74 s</td><td class="num">8.83 s</td><td class="num">1.56×</td></tr>
+          <tr><td>Second run</td><td>14</td><td class="num">0.74 s</td><td class="num">4.16 s</td><td class="num">0.18×</td></tr></table>
+        <p style="color:var(--mute);font-size:.86rem">The key was identical in both runs. When the whole serial job takes under a second, process start-up and data copying cost more than the work they share, so parallelism helps only for large enough workloads.</p></div>
+      <div class="card"><h3>Timing channel: negative result</h3>
+        <p style="margin:.2rem 0;color:var(--mute);font-size:.9rem">30,000 trials per plaintext value: cache-line group means span about 108 ns, below the ~138 ns noise. No exploitable timing leak in this virtualised setup, while power gave the key within a few hundred traces.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REPORT ============ -->
+<section class="view" id="v-report">
+  <div class="sechead"><div class="eyebrow">Submitted document</div><h2>Internship report</h2>
+    <p><a class="btn" href="assets/report/Internship_Report_Devanshi_Yadav.pdf" download>Download PDF</a> <a class="btn ghost" href="assets/report/Internship_Report_Devanshi_Yadav.pdf" target="_blank" rel="noopener">Open in new tab</a></p></div>
+  <div class="pdfwrap"><iframe title="Internship report PDF"></iframe></div>
+  <p style="color:var(--mute);font-size:.88rem">If the PDF does not display inline in your browser, use the buttons above.</p>
+</section>
+
+<!-- ============ Q&A ============ -->
+<section class="view" id="v-qa">
+  <div class="sechead"><div class="eyebrow">Be ready for these</div><h2>Viva Q&amp;A</h2></div>
+  <div id="qaList"></div>
+  <div class="card" style="margin-top:1rem"><h3>Numbers to remember</h3><table class="t" id="numTable"></table></div>
+</section>
+</main>
+
+<div class="lightbox" id="lb"><img alt=""><p></p></div>
+<div class="hint" id="hint" hidden>← → switch section · P exit presentation</div>
+<footer>Real-hardware values are from recorded runs on the supplied ChipWhisperer dataset. Section B of CPA Live uses synthetic traces generated in your browser. Devanshi Yadav · DRDO SAG internship 2026.</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cpa.js"></script>
+</body>
+</html>
